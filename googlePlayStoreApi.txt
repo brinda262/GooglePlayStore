@@ -1,0 +1,45 @@
+//i used another csv file for just an approach
+
+
+pip install google-cloud-storage
+
+
+
+from google.cloud import bigquery
+from google.cloud import storage
+
+def gcs_upload_blob():
+    """Uploads a file to the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket('my_bucket_name')
+    blob = bucket.blob('gs://path/to/file.name')
+
+    blob.upload_from_filename('/path/to/source.file')
+
+    print('File {} uploaded to {}.'.format(
+        '/path/to/source.csv',
+        'gs://path/to/upload.csv'))
+
+
+def bq_load_csv_in_gcs():
+    bigquery_client = bigquery.Client()
+    dataset_ref = bigquery_client.dataset()
+
+    job_config = bigquery.LoadJobConfig()
+    schema = [
+        bigquery.SchemaField('name', 'STRING', mode='REQUIRED'),
+        bigquery.SchemaField('age', 'INTEGER', mode='REQUIRED'),
+    ]
+    job_config.schema = schema
+    job_config.skip_leading_rows = 1
+
+    load_job = bigquery_client.load_table_from_uri(
+        'gs://path/to/upload.csv',
+        dataset_ref.table('my_table_id'),
+        job_config=job_config)
+
+    assert load_job.job_type == 'load'
+
+    load_job.result()  # Waits for table load to complete.
+
+    assert load_job.state == 'DONE'
