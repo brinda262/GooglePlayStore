@@ -1,4 +1,4 @@
-//i used another csv file for just an approach
+// This is just a demo of one csv file.
 
 
 pip install google-cloud-storage
